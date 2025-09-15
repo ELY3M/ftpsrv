@@ -397,7 +397,7 @@ static int ftp_build_list_entry(struct FtpSession* session, const struct Pathnam
     return rc;
 }
 
-static int ftp_build_mlst_entry(const struct Pathname* fullpath, const char* name, const struct stat* st, char* out, int* out_len) {
+static int ftp_build_mlst_entry(const char* name, const struct stat* st, char* out, int* out_len) {
     int rc;
 
     struct tm tm = {0};
@@ -637,7 +637,7 @@ static enum FTP_FILE_TRANSFER_STATE ftp_dir_data_transfer_progress(struct FtpSes
 
         if (transfer->mode == FTP_TRANSFER_MODE_MLSD) {
             int len = sizeof(transfer->list_buf);
-            ftp_build_mlst_entry(&filepath, name, &st, transfer->list_buf, &len);
+            ftp_build_mlst_entry(name, &st, transfer->list_buf, &len);
             transfer->size = len;
         } else {
             ftp_build_list_entry(session, &filepath, name, &st);
@@ -1194,7 +1194,7 @@ static void ftp_list_directory(struct FtpSession* session, const char* data, enu
                 }
             } else if (mode == FTP_TRANSFER_MODE_MLSD) {
                 int len = sizeof(session->transfer.list_buf);
-                rc = ftp_build_mlst_entry(&session->temp_path, pathname.s, &st, session->transfer.list_buf, &len);
+                rc = ftp_build_mlst_entry(pathname.s, &st, session->transfer.list_buf, &len);
                 if (rc < 0) {
                     ftp_client_msg(session, 450, "Requested file action not taken, %s. Failed to build entry: %s.", strerror(errno), session->temp_path.s);
                 } else {
@@ -1278,7 +1278,7 @@ static void ftp_cmd_MLST(struct FtpSession* session, const char* data) {
         } else {
             char buf[1024] = {0};
             int len = sizeof(buf);
-            rc = ftp_build_mlst_entry(&session->temp_path, pathname.s, &st, buf, &len);
+            rc = ftp_build_mlst_entry(pathname.s, &st, buf, &len);
             if (rc < 0) {
                 ftp_client_msg(session, 450, "Requested file action not taken, %s. Failed to build entry: %s.", strerror(errno), session->temp_path.s);
             } else {
