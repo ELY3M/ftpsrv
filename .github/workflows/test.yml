@@ -1,0 +1,32 @@
+name: test_build_switch
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        preset: [switch]
+    runs-on: ${{ matrix.os }}
+    container: ghcr.io/irneracoonovich/devkita64
+    ##container: devkitpro/devkita64:latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: time test
+       run: date
+
+    # fetch latest cmake
+    - uses: lukka/get-cmake@latest
+
+    - name: Configure CMake
+      # disable ftp-gc until dkpa64 container uses latest libnx
+      run: |
+        cmake --preset ${{ matrix.preset }} -DUSE_VFS_GC=0
+
+    - name: Build
+      run: cmake --build --preset ${{ matrix.preset }} --parallel 4
